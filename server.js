@@ -12,23 +12,23 @@ app.use(cors({
 }));
 
 
-// Root route (taki "Cannot GET /" na aaye)
-app.get('/', (req, res) => {
-    res.send("Server is running! Use /download?url=YOUR_URL");
-});
-
-// Download route
 app.get('/download', async (req, res) => {
     const { url } = req.query;
     if (!url) return res.status(400).send("URL is required");
-    
+
     try {
-        const response = await axios.get(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-        res.json(JSON.parse(response.data.contents));
+        // AllOrigins ke bajaye direct fetch try karte hain
+        const response = await axios.get(url, {
+            headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+            }
+        });
+        res.send(response.data); // Yahan se aapko raw HTML milega
     } catch (err) {
-        res.status(500).send("Error fetching data");
+        res.status(500).send("Error: Proxy blocked or invalid URL");
     }
 });
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
