@@ -8,30 +8,28 @@ app.use(cors());
 
 app.get('/download', async (req, res) => {
     const { url } = req.query;
-    if (!url) return res.status(400).json({ error: "URL missing" });
-
     try {
-        // Bina proxy ke direct request try karte hain (kabhi-kabhi ye best hota hai)
-        const response = await axios.get(url, {
+        // Hum request ko browser jaisa dikhayenge
+        const { data } = await axios.get(url, {
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+                "Accept-Language": "en-US,en;q=0.9"
             }
         });
 
-        const $ = cheerio.load(response.data);
-        const videoUrl = $('meta[property="og:video"]').attr('content');
+        const $ = cheerio.load(data);
+        // Instagram ke meta tags
+        const video = $('meta[property="og:video"]').attr('content');
         
-        if (!videoUrl) {
-            return res.status(404).json({ error: "Video tag not found in HTML" });
+        if (!video) {
+            return res.status(400).json({ error: "Video source not found, make sure URL is public." });
         }
 
-        res.json({ video: videoUrl });
+        res.json({ video: video });
     } catch (err) {
-        // Yahan error detail aayegi
-        console.error("SERVER ERROR:", err.message);
-        res.status(500).json({ error: err.message });
+        // Agar error 403 hai, toh server-side restriction hai
+        res.status(500).json({ error: "Server restricted by Instagram. Use a scraping API." });
     }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+app.listen(process.env.PORT || 3000);
