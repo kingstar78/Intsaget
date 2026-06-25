@@ -7,27 +7,31 @@ const app = express();
 app.use(cors());
 
 app.get('/download', async (req, res) => {
-    let { url } = req.query;
-    if (!url) return res.status(400).json({ error: "URL is required" });
-
-    // Link ko clean karna (sirf https://www.instagram.com/reel/ID/ rakhna)
-    const cleanUrl = url.split('?')[0];
+    const { url } = req.query;
+    if (!url) return res.status(400).json({ error: "URL missing" });
 
     try {
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(cleanUrl)}`;
-        const response = await axios.get(proxyUrl);
-        
-        const html = response.data.contents;
-        const $ = cheerio.load(html);
-        
+        // Bina proxy ke direct request try karte hain (kabhi-kabhi ye best hota hai)
+        const response = await axios.get(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+        });
+
+        const $ = cheerio.load(response.data);
         const videoUrl = $('meta[property="og:video"]').attr('content');
         
         if (!videoUrl) {
-            return res.status(404).json({ error: "Video not found" });
+            return res.status(404).json({ error: "Video tag not found in HTML" });
         }
 
         res.json({ video: videoUrl });
     } catch (err) {
-        res.status(500).json({ error: "Fetch failed" });
+        // Yahan error detail aayegi
+        console.error("SERVER ERROR:", err.message);
+        res.status(500).json({ error: err.message });
     }
 });
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on ${PORT}`));
