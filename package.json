@@ -1,13 +1,15 @@
 {
-  "name": "insta-backend",
+  "name": "instasave",
   "version": "1.0.0",
+  "description": "Instagram Downloader with Backend",
   "main": "server.js",
-  "dependencies": {
-  "express": "^4.18.2",
-  "axios": "^1.6.0",
-  "cors": "^2.8.5"
-  },
   "scripts": {
     "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "cheerio": "^1.0.0-rc.12"
   }
 }
